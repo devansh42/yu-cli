@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 //Cli entry point
 
 import { Command } from "commander";
@@ -36,3 +37,4 @@ program.command("down <hostname>") //UnDeploying Site
 
 
 
+program.parse(process.argv); //Parsing parameters

@@ -7,6 +7,7 @@ import { apiBackend } from "./fixed";
 import { errLogger } from "./utils";
 import { homedir } from 'os';
 import { join } from "path";
+import fetch from "node-fetch";
 let accessToken = "" //holds accestoken in memory
 
 export const fetchAuthenticatedHeader = () => {
