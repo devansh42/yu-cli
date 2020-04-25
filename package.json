@@ -9,10 +9,14 @@
   "author": "devansh42",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^13.13.2",
+    "@types/node-fetch": "^2.5.7",
+    "@types/prompts": "^2.0.6",
+    "@types/tar": "^4.0.3",
     "chalk": "^4.0.0",
     "commander": "^5.0.0",
+    "mocha": "^7.1.1",
     "node-fetch": "^2.6.0",
-    "prompt": "^1.0.0",
     "prompts": "^2.3.2",
     "tar": "^6.0.1"
   }
