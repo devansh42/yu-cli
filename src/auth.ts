@@ -11,7 +11,16 @@ import fetch from "node-fetch";
 let accessToken = "" //holds accestoken in memory
 
 export const fetchAuthenticatedHeader = () => {
-    return { "x-access-token": getAccessToken() };
+    return {
+        "x-access-token": getAccessToken(),
+        "content-type": "application/json"
+    };
+}
+export const fetchUnAuthenticateHeader = () => {
+    return {
+        "content-type": "application/json"
+
+    }
 }
 const tokenFile = join(homedir(), ".access_token");
 
@@ -46,11 +55,12 @@ export async function handleLogin() {
             name: "email",
 
             type: "text",
+
             message: "Email ? "
         },
         {
             name: "password",
-
+            validate: password => password.length < 8 ? "Password should be of atleast 8 characters" : true,
             type: "password",
             message: "Password ? "
         }]
@@ -62,16 +72,20 @@ export async function handleLogin() {
     fetch([apiBackend, "login"].join("/"), {
         method: "post",
         body: json,
+        headers: fetchUnAuthenticateHeader()
     }).then(res => {
         switch (res.status) {
             case 200: //Everything is okay
                 return res.json()
                 break;
             case 403://Invalid credentials
-                return Error("Authentiation Failed : Invalid Credentials");
+                throw Error("Authentiation Failed : Invalid Credentials");
+                break;
+            case 400:
+                throw Error("Invalid Email/Password");
                 break;
             default:
-                return Error("Internal Server Error");
+                throw Error("Internal Server Error");
                 break;
         }
     }).then(res => {
@@ -79,7 +93,7 @@ export async function handleLogin() {
     })
         .then(data => {
             console.log("Welcome Again, ", data.email);
-            setAccessToken(data.token);
+            setAccessToken(data.access_token);
         })
         .catch(errLogger);
 
@@ -97,7 +111,7 @@ export async function handleSignup() {
         },
         {
             name: "password",
-
+            validate: password => password.length < 8 ? "Password should be of atleast 8 characters" : true,
             type: "password",
             message: "Password ? "
         }]
@@ -108,19 +122,24 @@ export async function handleSignup() {
     fetch([apiBackend, "signup"].join("/"), {
         method: "post",
         body: json,
+        headers: fetchUnAuthenticateHeader()
     }).then(res => {
         switch (res.status) {
             case 201:
                 return res.json(); //Everything is perfect
                 break;
+            case 400:
+                throw Error("Invalid Email/Password");
+                break;
             case 403: //User Already exists but credentials are wrong    
-                return Error("Couldn't make your account : Account already exists, may be it doesn't belongs to you");
+                throw Error("Couldn't make your account : Account already exists, may be it doesn't belongs to you");
                 break;
             case 200: //Account already exists and belongs to currnet user
                 console.log(chalk.yellow("!! It seems you already have an account with this mail, please login"));
+                process.exit(0)
                 break;
             default:
-                return Error("Internal server error");
+                throw Error("Internal server error");
         }
     })
         .then(res => {

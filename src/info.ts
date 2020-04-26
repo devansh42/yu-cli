@@ -1,6 +1,7 @@
 import { apiBackend } from "./fixed";
 import { fetchAuthenticatedHeader } from "./auth";
 import * as chalk from "chalk";
+import fetch from "node-fetch";
 import { errLogger } from "./utils";
 
 export function handleProjectListing(cmdobj) {
@@ -17,7 +18,7 @@ export function handleProjectListing(cmdobj) {
                 break;
 
             default:
-                return Error("Internal Server Error");
+                throw Error("Internal Server Error");
                 break;
         }
     })
@@ -26,7 +27,7 @@ export function handleProjectListing(cmdobj) {
         })
         .then(list => {
             console.log(chalk.yellow("=".repeat(50)))
-            console.log(chalk.blue("        Project(s)             "))
+            console.log(chalk.blue("        Project(s) ".concat(cmdobj.only_deployed ? "(Deployed)" : "") ))
             console.log(chalk.yellow("=".repeat(50)))
             console.log()
             if (cmdobj.only_deployed) {

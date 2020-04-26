@@ -1,31 +1,33 @@
 import * as dns from "dns";
 import { fetchAuthenticatedHeader } from "./auth";
 import * as chalk from "chalk";
-import { apiBackend } from "./fixed";
+import { serviceDomain, apiBackend } from "./fixed";
 import * as tar from "tar";
 import { errLogger } from "./utils";
 import * as prompts from "prompts";
 import * as fs from "fs";
 import fetch from "node-fetch";
-
+import { join } from "path";
+import { tmpdir } from "os";
 export async function handleUp(hostname: string, type?: String) {
     const ttype = type || "regular";
     if (["spa", "regular"].indexOf(ttype.toLocaleLowerCase()) > -1) {
         try {
 
             hostname = await getDeployableDomain(hostname);
-            const [buf, name] = readyFiles();
+            const name = readyFiles();
+            const buf = fs.readFileSync(name, { encoding: "base64" })
             const fd = JSON.stringify({
                 hostname,
-                files: buf.toString("base64")
+                files: buf
             });
-
             fetch([apiBackend, "up"].join("/"), {
                 method: "post",
-                body: fd
+                body: fd,
+                headers: fetchAuthenticatedHeader()
             })
                 .then(res => {
-                    switch (res.status) {
+                   switch (res.status) {
                         case 200:
                             const gr = chalk.green;
                             console.log(chalk.blue("+-".repeat(25)));
@@ -33,10 +35,16 @@ export async function handleUp(hostname: string, type?: String) {
                             console.log(gr("Congratulations site uploaded!!"))
                             console.log(gr("Online at https://".concat(hostname).concat("/")))
                             console.log(chalk.blue("-+".repeat(25)));
+                            return name;
                             break;
+                        case 403:
+                            throw Error("Authentication Failed: Please Login")
                         default:
-                            return Error("Some internal error, try later");
+                            throw Error("Some internal error, try later");
                     }
+                })
+                .then((tempfilename: string) => {
+                    fs.unlinkSync(tempfilename);
                 })
                 .catch(errLogger);
 
@@ -51,17 +59,29 @@ export async function handleUp(hostname: string, type?: String) {
     }
 }
 
-const domainRegex = /^[a-z0-9]+[a-z0-9-]*[a-z0-9]+$\.skydive\.me/
+const subDomainRegex = /^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?$/
+
+
+
+
 
 function isValidDomain(domain: String): Boolean {
-    return domain.match(domainRegex) !== null
+    //return domain.match(domainRegex) !== null
+    if (domain.endsWith(serviceDomain)) {
+        if (domain.split(/\./).length == 3) {
+            const s = domain.split(/\./)[0];
+            
+            return subDomainRegex.test(s);
+
+        } else return false
+    } else return false;
 }
 
 async function getDeployableDomain(hostname: string): Promise<string> {
     let validDomain = false;
     while (!validDomain) { //Loop until valid domain found or cli terminated 
         if (!isValidDomain(hostname)) {
-            return Promise.reject("Invalid Domain name"); //Return from the function as user entered un processable domain name
+            throw Error("Invalid Domain name"); //Return from the function as user entered un processable domain name
         } else {
             //lets check for avi
             try {
@@ -103,7 +123,7 @@ async function getDeployableDomain(hostname: string): Promise<string> {
                         })
                     })
                     .then(({ hostname }) => {
-                        return hostname
+                        return hostname.concat(".").concat(serviceDomain);
                     })
 
 
@@ -124,17 +144,20 @@ async function getDeployableDomain(hostname: string): Promise<string> {
 
 
 //readyFiles, readfiles from the current files
-function readyFiles(): [Buffer, string] {
+function readyFiles(): string {
     const nw = Date.now();
-    const name = ".yu.upload." + nw + ".tar.gz";
-    const fstream = fs.createWriteStream(name);
+    const name = join(tmpdir(), ".yu.upload." + nw + ".tar.gz");
+    // const fstream = fs.createWriteStream(name);
     const cwd = process.cwd(); //Current Working Directory
     console.log(chalk.blue("Compressing... files"))
     tar.c({
-        gzip: true
-    }, [cwd]).pipe(fstream).close();
+        sync: true,
+        file: name,
+        gzip: true,
+
+    }, [cwd])
     console.log(chalk.blue("Compressed!!"))
-    return [Buffer.from(fstream), name];
+    return name;
 
 }
 
@@ -152,15 +175,20 @@ export function handleDown(hostname: String) {
         body: json,
         headers: fetchAuthenticatedHeader()
     }).then(res => {
+
         switch (res.status) {
+
             case 401:
-                return Error("It seems this site doesn't belongs to you");
+                throw Error("It seems this site doesn't belongs to you");
                 break;
+            case 404:
+                throw Error("Site is not deployed either");
             case 200:
-                return res.json();
+                console.log("edede")
+                return;
                 break;
             default:
-                return Error("Couldn't reach to servers");
+                throw Error("Couldn't reach to servers");
 
         }
     }).then(() => {
