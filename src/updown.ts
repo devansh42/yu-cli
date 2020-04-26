@@ -19,7 +19,8 @@ export async function handleUp(hostname: string, type?: String) {
             const buf = fs.readFileSync(name, { encoding: "base64" })
             const fd = JSON.stringify({
                 hostname,
-                files: buf
+                files: buf,
+                wd:process.cwd()
             });
             fetch([apiBackend, "up"].join("/"), {
                 method: "post",
@@ -27,7 +28,7 @@ export async function handleUp(hostname: string, type?: String) {
                 headers: fetchAuthenticatedHeader()
             })
                 .then(res => {
-                   switch (res.status) {
+                    switch (res.status) {
                         case 200:
                             const gr = chalk.green;
                             console.log(chalk.blue("+-".repeat(25)));
@@ -70,7 +71,7 @@ function isValidDomain(domain: String): Boolean {
     if (domain.endsWith(serviceDomain)) {
         if (domain.split(/\./).length == 3) {
             const s = domain.split(/\./)[0];
-            
+
             return subDomainRegex.test(s);
 
         } else return false
@@ -120,6 +121,8 @@ async function getDeployableDomain(hostname: string): Promise<string> {
                             name: "hostname",
                             message: "Select domain name, you may select from recommedation ? "
 
+                        }, {
+                            onCancel: () => { process.exit(0) }
                         })
                     })
                     .then(({ hostname }) => {

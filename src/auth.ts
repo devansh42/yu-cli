@@ -63,7 +63,9 @@ export async function handleLogin() {
             validate: password => password.length < 8 ? "Password should be of atleast 8 characters" : true,
             type: "password",
             message: "Password ? "
-        }]
+        }],{
+            onCancel: () => { process.exit(0) }
+        }
     );
 
     const { email, password } = result;
@@ -114,7 +116,9 @@ export async function handleSignup() {
             validate: password => password.length < 8 ? "Password should be of atleast 8 characters" : true,
             type: "password",
             message: "Password ? "
-        }]
+        }], {
+        onCancel: () => { process.exit(0) }
+    }
     );
 
     const { email, password } = result;

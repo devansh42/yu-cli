@@ -1,12 +1,22 @@
 {
-  "name": "yu",
-  "version": "1.0.0",
-  "description": "Cli for Yu",
+  "name": "yucloud-cli",
+  "version": "1.0.1",
+  "description": "Cli for Yu Static Site Hosting Service",
   "main": "built/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
+  "bin": {
+    "yu": "built/index.js"
+  },
+  "keywords": [
+    "cli",
+    "static",
+    "free",
+    "website",
+    "yu"
+  ],
   "author": "devansh42",
   "license": "ISC",
   "dependencies": {

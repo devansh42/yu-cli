@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 //Cli entry point
 
 import { Command } from "commander";
