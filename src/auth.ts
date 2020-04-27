@@ -12,7 +12,7 @@ let accessToken = "" //holds accestoken in memory
 
 export const fetchAuthenticatedHeader = () => {
     return {
-        "x-access-token": getAccessToken(),
+        "Authorization": getAccessToken(),
         "content-type": "application/json"
     };
 }
@@ -44,7 +44,7 @@ function getAccessToken() {
         }
 
     }
-    return accessToken;
+    return "Bearer ".concat(accessToken);
 }
 
 
@@ -90,8 +90,6 @@ export async function handleLogin() {
                 throw Error("Internal Server Error");
                 break;
         }
-    }).then(res => {
-        return res.data;
     })
         .then(data => {
             console.log("Welcome Again, ", data.email);
@@ -146,9 +144,6 @@ export async function handleSignup() {
                 throw Error("Internal server error");
         }
     })
-        .then(res => {
-            return res.data;
-        })
         .then(data => {
             console.log(chalk.green("Account Successfully Created!!"))
             setAccessToken(data.access_token);

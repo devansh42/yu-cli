@@ -65,7 +65,8 @@ function handleUp(hostname, type) {
                     buf = fs.readFileSync(name_1, { encoding: "base64" });
                     fd = JSON.stringify({
                         hostname: hostname,
-                        files: buf
+                        files: buf,
+                        wd: process.cwd()
                     });
                     node_fetch_1.default([fixed_1.apiBackend, "up"].join("/"), {
                         method: "post",

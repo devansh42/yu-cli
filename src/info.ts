@@ -22,9 +22,6 @@ export function handleProjectListing(cmdobj) {
                 break;
         }
     })
-        .then(res => {
-            return res.data;
-        })
         .then(list => {
             console.log(chalk.yellow("=".repeat(50)))
             console.log(chalk.blue("        Project(s) ".concat(cmdobj.only_deployed ? "(Deployed)" : "") ))

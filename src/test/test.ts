@@ -51,8 +51,8 @@ app.post("/login", (req, res) => {
 });
 
 app.use((req, res, next) => { //For Login/Signup Validation
-    const token = req.get("x-access-token");
-    if (token === "somesecretcode") next();
+    const token = req.get("Authorization");
+    if (token.split(" ")[1] === "somesecretcode") next();
     else res.status(403).send("Invalid Access Token, Please Login Again")
 })
 
