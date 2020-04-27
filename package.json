@@ -1,6 +1,6 @@
 {
   "name": "yucloud-cli",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "Cli for Yu Static Site Hosting Service",
   "main": "built/index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "tsc"
   },
   "bin": {
-    "yu": "built/index.js"
+    "yus": "built/index.js"
   },
   "keywords": [
     "cli",
