@@ -65,6 +65,7 @@ function handleUp(hostname, type) {
                     buf = fs.readFileSync(name_1, { encoding: "base64" });
                     fd = JSON.stringify({
                         hostname: hostname,
+                        type: ttype.toLocaleLowerCase(),
                         files: buf,
                         wd: process.cwd()
                     });
@@ -150,24 +151,20 @@ function getDeployableDomain(hostname) {
                             switch (res.status) {
                                 case 200:
                                     return res.json();
+                                case 400:
+                                    throw Error("Broken Request : Unvalid Hostname");
+                                    break;
+                                case 403:
+                                    throw Error("Authentication Required!");
+                                    break;
                                 default:
                                     console.log(chalk.red("Internal server error, please try later"));
                                     process.exit(0);
                             }
                         })
-                            .then(function (res) {
-                            return res.data.recommendings; //List of recommendings 
-                        })
                             .then(function (recommendings) {
                             console.log(chalk.yellow("Here are some recommeding(s)"));
                             console.log(chalk.magenta(recommendings.join("\t")));
-                            var properties = {
-                                hostname: {
-                                    required: true,
-                                    type: "string",
-                                    description: "Domain name : "
-                                }
-                            };
                             return prompts({
                                 type: "text",
                                 name: "hostname",

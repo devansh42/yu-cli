@@ -19,8 +19,9 @@ export async function handleUp(hostname: string, type?: String) {
             const buf = fs.readFileSync(name, { encoding: "base64" })
             const fd = JSON.stringify({
                 hostname,
+                type:ttype.toLocaleLowerCase(),
                 files: buf,
-                wd:process.cwd()
+                wd: process.cwd()
             });
             fetch([apiBackend, "up"].join("/"), {
                 method: "post",
@@ -97,25 +98,22 @@ async function getDeployableDomain(hostname: string): Promise<string> {
                     .then(res => { //Recommendation request chain
                         switch (res.status) {
                             case 200:
-                                return res.json();
+                                return res.json()
+                            case 400:
+                                throw Error("Broken Request : Unvalid Hostname");
+                                break;
+                            case 403:
+                                throw Error("Authentication Required!");
+                                break;
                             default:
                                 console.log(chalk.red("Internal server error, please try later"));
                                 process.exit(0);
                         }
                     })
-                    .then(res => {
-                        return res.data.recommendings; //List of recommendings 
-                    })
                     .then(recommendings => {
                         console.log(chalk.yellow("Here are some recommeding(s)"))
                         console.log(chalk.magenta(recommendings.join("\t")))
-                        const properties = {
-                            hostname: {
-                                required: true,
-                                type: "string",
-                                description: "Domain name : "
-                            }
-                        }
+                        
                         return prompts({
                             type: "text",
                             name: "hostname",

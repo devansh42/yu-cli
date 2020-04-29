@@ -16,7 +16,8 @@ export function handleProjectListing(cmdobj) {
             case 200:
                 return res.json()
                 break;
-
+            case 403:
+                throw Error("Authentication Failed, Please Login again " );
             default:
                 throw Error("Internal Server Error");
                 break;
@@ -33,7 +34,7 @@ export function handleProjectListing(cmdobj) {
                 })
             } else {
                 list.forEach((v, i) => {
-                    console.log(i + 1, "\t", chalk.blue(v.hostname), "\t", v.status ? chalk.green("Up") : chalk.grey("Down"))
+                    console.log(i + 1, "\t", chalk.blue(v.hostname), "\t", v.deployed ? chalk.green("Up") : chalk.grey("Down"))
                 })
             }
             console.log("+-".repeat(25))

@@ -23,10 +23,10 @@ app.post("/signup", (req, res) => {
     }
     else {
         res.status(201).json({
-            data: {
-                access_token: "somesecretcode"
 
-            }
+            access_token: "somesecretcode"
+
+
         })
     }
 })
@@ -38,10 +38,10 @@ app.post("/login", (req, res) => {
     }
     else if (email.toString() === "dev@gmail.com" && password.toString() === "12345678") {
         res.status(200).json({
-            data: {
-                access_token: "somesecretcode",
-                email: "dev@gmail.com"
-            }
+
+            access_token: "somesecretcode",
+            email: "dev@gmail.com"
+
         })
     }
     else if (email.toString() === "dev@gmail.com" && password.toString() !== "12345678") {
@@ -52,6 +52,7 @@ app.post("/login", (req, res) => {
 
 app.use((req, res, next) => { //For Login/Signup Validation
     const token = req.get("Authorization");
+    console.log(token);
     if (token.split(" ")[1] === "somesecretcode") next();
     else res.status(403).send("Invalid Access Token, Please Login Again")
 })
@@ -66,9 +67,9 @@ app.get("/list", (req, res) => {
         { hostname: "4.falcon.com", deployed: true },
 
     ]
-    res.status(200).json({
-        data: od ? ans.filter((v, i) => v.deployed == true) : ans
-    });
+    res.status(200).json(
+        od ? ans.filter((v, i) => v.deployed == true) : ans
+    );
 })
 
 
@@ -76,9 +77,8 @@ app.get("/recommend", (req, res) => {
     const hostname = req.query.hostname;
     const domain = hostname.toString().split(".")[0];
     res.status(200)
-        .json({
-            data: { recommendings: ["s1", "s2", "s3"].map(v => domain.concat('-').concat(v)) }
-        })
+        .json(["s1", "s2", "s3"].map(v => domain.concat('-').concat(v))
+        )
 });
 
 app.post("/down", (req, res) => {

@@ -21,9 +21,7 @@ app.post("/signup", function (req, res) {
     }
     else {
         res.status(201).json({
-            data: {
-                access_token: "somesecretcode"
-            }
+            access_token: "somesecretcode"
         });
     }
 });
@@ -34,10 +32,8 @@ app.post("/login", function (req, res) {
     }
     else if (email.toString() === "dev@gmail.com" && password.toString() === "12345678") {
         res.status(200).json({
-            data: {
-                access_token: "somesecretcode",
-                email: "dev@gmail.com"
-            }
+            access_token: "somesecretcode",
+            email: "dev@gmail.com"
         });
     }
     else if (email.toString() === "dev@gmail.com" && password.toString() !== "12345678") {
@@ -45,8 +41,9 @@ app.post("/login", function (req, res) {
     }
 });
 app.use(function (req, res, next) {
-    var token = req.get("x-access-token");
-    if (token === "somesecretcode")
+    var token = req.get("Authorization");
+    console.log(token);
+    if (token.split(" ")[1] === "somesecretcode")
         next();
     else
         res.status(403).send("Invalid Access Token, Please Login Again");
@@ -59,17 +56,13 @@ app.get("/list", function (req, res) {
         { hostname: "3.falcon.com", deployed: false },
         { hostname: "4.falcon.com", deployed: true },
     ];
-    res.status(200).json({
-        data: od ? ans.filter(function (v, i) { return v.deployed == true; }) : ans
-    });
+    res.status(200).json(od ? ans.filter(function (v, i) { return v.deployed == true; }) : ans);
 });
 app.get("/recommend", function (req, res) {
     var hostname = req.query.hostname;
     var domain = hostname.toString().split(".")[0];
     res.status(200)
-        .json({
-        data: { recommendings: ["s1", "s2", "s3"].map(function (v) { return domain.concat('-').concat(v); }) }
-    });
+        .json(["s1", "s2", "s3"].map(function (v) { return domain.concat('-').concat(v); }));
 });
 app.post("/down", function (req, res) {
     var hostname = req.body.hostname;

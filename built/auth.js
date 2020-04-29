@@ -48,7 +48,7 @@ var node_fetch_1 = require("node-fetch");
 var accessToken = ""; //holds accestoken in memory
 exports.fetchAuthenticatedHeader = function () {
     return {
-        "x-access-token": getAccessToken(),
+        "Authorization": getAccessToken(),
         "content-type": "application/json"
     };
 };
@@ -76,7 +76,7 @@ function getAccessToken() {
             process.exit(0); //Exiting app
         }
     }
-    return accessToken;
+    return "Bearer ".concat(accessToken);
 }
 function handleLogin() {
     return __awaiter(this, void 0, void 0, function () {
@@ -121,8 +121,6 @@ function handleLogin() {
                                 throw Error("Internal Server Error");
                                 break;
                         }
-                    }).then(function (res) {
-                        return res.data;
                     })
                         .then(function (data) {
                         console.log("Welcome Again, ", data.email);
@@ -181,9 +179,6 @@ function handleSignup() {
                             default:
                                 throw Error("Internal server error");
                         }
-                    })
-                        .then(function (res) {
-                        return res.data;
                     })
                         .then(function (data) {
                         console.log(chalk.green("Account Successfully Created!!"));
