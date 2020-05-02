@@ -3,7 +3,7 @@
 
 ## Installation
     Install it in just one step 
-        npm i -g yucloud-cli
+        npm i -g yu-gstatic
 ## Build 
     Build this project with npm run build
 
@@ -28,3 +28,4 @@
         help [command]        display help for command
             
 
+## For more inforamation, visit [GStatic.tech](//gstatic.tech)
