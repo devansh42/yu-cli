@@ -1,4 +1,3 @@
-import * as dns from "dns";
 import { fetchAuthenticatedHeader } from "./auth";
 import * as chalk from "chalk";
 import { serviceDomain, apiBackend } from "./fixed";
@@ -19,7 +18,7 @@ export async function handleUp(hostname: string, type?: String) {
             const buf = fs.readFileSync(name, { encoding: "base64" })
             const fd = JSON.stringify({
                 hostname,
-                type:ttype.toLocaleLowerCase(),
+                type: ttype.toLocaleLowerCase(),
                 files: buf,
                 wd: process.cwd()
             });
@@ -87,49 +86,58 @@ async function getDeployableDomain(hostname: string): Promise<string> {
         } else {
             //lets check for avi
             try {
-                let _ = await dns.promises.lookup(hostname)
-                console.log(chalk.yellow("Domain is already in use"));
-                console.log("Let me recommend you some domain");
+                let exists = await isHostExists(hostname);
+                if (exists) {
+                    console.log(chalk.yellow("Domain is already in use"));
+                    console.log("Let me recommend you some domain");
 
-                hostname = await fetch([apiBackend, "recommend"].join("/").concat("?hostname=").concat(hostname), {
-                    method: "get",
-                    headers: fetchAuthenticatedHeader()
-                })
-                    .then(res => { //Recommendation request chain
-                        switch (res.status) {
-                            case 200:
-                                return res.json()
-                            case 400:
-                                throw Error("Broken Request : Unvalid Hostname");
-                                break;
-                            case 403:
-                                throw Error("Authentication Required!");
-                                break;
-                            default:
-                                console.log(chalk.red("Internal server error, please try later"));
-                                process.exit(0);
-                        }
+                    hostname = await fetch([apiBackend, "recommend"].join("/").concat("?hostname=").concat(hostname), {
+                        method: "get",
+                        headers: fetchAuthenticatedHeader()
                     })
-                    .then(recommendings => {
-                        console.log(chalk.yellow("Here are some recommeding(s)"))
-                        console.log(chalk.magenta(recommendings.join("\t")))
-                        
-                        return prompts({
-                            type: "text",
-                            name: "hostname",
-                            message: "Select domain name, you may select from recommedation ? "
-
-                        }, {
-                            onCancel: () => { process.exit(0) }
+                        .then(res => { //Recommendation request chain
+                            switch (res.status) {
+                                case 200:
+                                    return res.json()
+                                case 400:
+                                    throw Error("Broken Request : Unvalid Hostname");
+                                    break;
+                                case 403:
+                                    throw Error("Authentication Required!");
+                                    break;
+                                default:
+                                    console.log(chalk.red("Internal server error, please try later"));
+                                    process.exit(0);
+                            }
                         })
-                    })
-                    .then(({ hostname }) => {
-                        return hostname.concat(".").concat(serviceDomain);
-                    })
+                        .then(recommendings => {
+                            console.log(chalk.yellow("Here are some recommeding(s)"))
+                            console.log(chalk.magenta(recommendings.join("\t")))
 
+                            return prompts({
+                                type: "text",
+                                name: "hostname",
+                                message: "Select domain name, you may select from recommedation ? "
+
+                            }, {
+                                onCancel: () => { process.exit(0) }
+                            })
+                        })
+                        .then(({ hostname }) => {
+                            return hostname.concat(".").concat(serviceDomain);
+                        })
+                        .catch(err => {
+                            console.log(chalk.red("Couldn't Complete request : ", err.message))
+                            process.exit(0);
+
+                        })
+                } else {
+                    validDomain = true
+                }
 
             } catch (err) {
-                validDomain = true;
+                console.log(chalk.red("Couldn't Complete request : ", err.message))
+                process.exit(0);
             }
 
 
@@ -185,7 +193,6 @@ export function handleDown(hostname: String) {
             case 404:
                 throw Error("Site is not deployed either");
             case 200:
-                console.log("edede")
                 return;
                 break;
             default:
@@ -197,4 +204,26 @@ export function handleDown(hostname: String) {
     })
         .catch(errLogger);
 
+}
+
+
+async function isHostExists(hostname: string) {
+    const r = await fetch([apiBackend, "host"].join("/").concat("?hostname=").concat(hostname), {
+        method: "get",
+        headers: fetchAuthenticatedHeader()
+    })
+    switch (r.status) {
+        case 400:
+            throw Error("Invalid Domain name");
+            break;
+        case 403:
+            throw Error("Authentication Failed : Login Again");
+        case 200:
+            return true;
+        case 404:
+            return false;
+        default:
+            throw Error("Internal server error")
+
+    }
 }

@@ -36,7 +36,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var dns = require("dns");
 var auth_1 = require("./auth");
 var chalk = require("chalk");
 var fixed_1 = require("./fixed");
@@ -126,21 +125,22 @@ function isValidDomain(domain) {
 }
 function getDeployableDomain(hostname) {
     return __awaiter(this, void 0, void 0, function () {
-        var validDomain, _, err_1;
+        var validDomain, exists, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     validDomain = false;
                     _a.label = 1;
                 case 1:
-                    if (!!validDomain) return [3 /*break*/, 7];
+                    if (!!validDomain) return [3 /*break*/, 9];
                     if (!!isValidDomain(hostname)) return [3 /*break*/, 2];
                     throw Error("Invalid Domain name"); //Return from the function as user entered un processable domain name
                 case 2:
-                    _a.trys.push([2, 5, , 6]);
-                    return [4 /*yield*/, dns.promises.lookup(hostname)];
+                    _a.trys.push([2, 7, , 8]);
+                    return [4 /*yield*/, isHostExists(hostname)];
                 case 3:
-                    _ = _a.sent();
+                    exists = _a.sent();
+                    if (!exists) return [3 /*break*/, 5];
                     console.log(chalk.yellow("Domain is already in use"));
                     console.log("Let me recommend you some domain");
                     return [4 /*yield*/, node_fetch_1.default([fixed_1.apiBackend, "recommend"].join("/").concat("?hostname=").concat(hostname), {
@@ -176,16 +176,25 @@ function getDeployableDomain(hostname) {
                             .then(function (_a) {
                             var hostname = _a.hostname;
                             return hostname.concat(".").concat(fixed_1.serviceDomain);
+                        })
+                            .catch(function (err) {
+                            console.log(chalk.red("Couldn't Complete request : ", err.message));
+                            process.exit(0);
                         })];
                 case 4:
                     hostname = _a.sent();
                     return [3 /*break*/, 6];
                 case 5:
-                    err_1 = _a.sent();
                     validDomain = true;
-                    return [3 /*break*/, 6];
-                case 6: return [3 /*break*/, 1];
-                case 7: //Loop ends here
+                    _a.label = 6;
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    err_1 = _a.sent();
+                    console.log(chalk.red("Couldn't Complete request : ", err_1.message));
+                    process.exit(0);
+                    return [3 /*break*/, 8];
+                case 8: return [3 /*break*/, 1];
+                case 9: //Loop ends here
                 return [2 /*return*/, hostname];
             }
         });
@@ -222,7 +231,6 @@ function handleDown(hostname) {
             case 404:
                 throw Error("Site is not deployed either");
             case 200:
-                console.log("edede");
                 return;
                 break;
             default:
@@ -234,3 +242,32 @@ function handleDown(hostname) {
         .catch(utils_1.errLogger);
 }
 exports.handleDown = handleDown;
+function isHostExists(hostname) {
+    return __awaiter(this, void 0, void 0, function () {
+        var r;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, node_fetch_1.default([fixed_1.apiBackend, "host"].join("/").concat("?hostname=").concat(hostname), {
+                        method: "get",
+                        headers: auth_1.fetchAuthenticatedHeader()
+                    })];
+                case 1:
+                    r = _a.sent();
+                    switch (r.status) {
+                        case 400:
+                            throw Error("Invalid Domain name");
+                            break;
+                        case 403:
+                            throw Error("Authentication Failed : Login Again");
+                        case 200:
+                            return [2 /*return*/, true];
+                        case 404:
+                            return [2 /*return*/, false];
+                        default:
+                            throw Error("Internal server error");
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+}

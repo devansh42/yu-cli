@@ -1,14 +1,14 @@
 {
-  "name": "yucloud-cli",
-  "version": "1.0.4",
-  "description": "Cli for Yu Static Site Hosting Service",
+  "name": "yu-gstatic",
+  "version": "1.0.7",
+  "description": "Cli for Yu Static Site Hosting Service - Hawa",
   "main": "built/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
   "bin": {
-    "yus": "built/index.js"
+    "gstatic": "built/index.js"
   },
   "keywords": [
     "cli",

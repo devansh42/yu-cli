@@ -3,9 +3,9 @@
 
 
 
-export const apiBackend = isDevEnv() ? "http://localhost:8080" : "https://api.site.com";
+export const apiBackend = isDevEnv() ? "http://api.gstatic.tech" : "http://api.gstatic.tech";
 export const appName = "";
-export const serviceDomain = isDevEnv() ? "bsnl.online" : "site.com";
+export const serviceDomain = isDevEnv() ? "gstatic.tech" : "gstatic.tech";
 
 
 
