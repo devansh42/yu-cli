@@ -22,6 +22,13 @@ export const fetchUnAuthenticateHeader = () => {
 
     }
 }
+export const fetchMultipartAuthenticatedHeader = () => {
+    return {
+        "Authorization": getAccessToken(),
+        //"content-type": "multipart/form-data;boundary=-------".concat(Date.now().toString())
+        //Don't need content type header here
+    };
+}
 const tokenFile = join(homedir(), ".access_token");
 
 export function setAccessToken(token: string) {
@@ -63,9 +70,9 @@ export async function handleLogin() {
             validate: password => password.length < 8 ? "Password should be of atleast 8 characters" : true,
             type: "password",
             message: "Password ? "
-        }],{
-            onCancel: () => { process.exit(0) }
-        }
+        }], {
+        onCancel: () => { process.exit(0) }
+    }
     );
 
     const { email, password } = result;

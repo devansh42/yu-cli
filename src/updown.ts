@@ -1,4 +1,4 @@
-import { fetchAuthenticatedHeader } from "./auth";
+import { fetchAuthenticatedHeader, fetchMultipartAuthenticatedHeader } from "./auth";
 import * as chalk from "chalk";
 import { serviceDomain, apiBackend } from "./fixed";
 import * as tar from "tar";
@@ -8,6 +8,8 @@ import * as fs from "fs";
 import fetch from "node-fetch";
 import { join } from "path";
 import { tmpdir } from "os";
+import * as FormData from "form-data";
+import { extname } from "path";
 export async function handleUp(hostname: string, type?: String) {
     const ttype = type || "regular";
     if (["spa", "regular"].indexOf(ttype.toLocaleLowerCase()) > -1) {
@@ -15,17 +17,23 @@ export async function handleUp(hostname: string, type?: String) {
 
             hostname = await getDeployableDomain(hostname);
             const name = readyFiles();
-            const buf = fs.readFileSync(name, { encoding: "base64" })
-            const fd = JSON.stringify({
-                hostname,
-                type: ttype.toLocaleLowerCase(),
-                files: buf,
-                wd: process.cwd()
+            const cont = fs.readFileSync(name);
+            const fd = new FormData();
+
+            fd.append("files", cont, {
+                filename: extname(name),
+                filepath: name,
+                contentType: "application/octet-stream"
             });
+
+            fd.append("hostname", hostname);
+            fd.append("type", ttype.toLocaleLowerCase());
+            fd.append("wd", process.cwd())
+
             fetch([apiBackend, "up"].join("/"), {
                 method: "post",
                 body: fd,
-                headers: fetchAuthenticatedHeader()
+                headers: fetchMultipartAuthenticatedHeader()
             })
                 .then(res => {
                     switch (res.status) {
@@ -37,6 +45,9 @@ export async function handleUp(hostname: string, type?: String) {
                             console.log(gr("Online at https://".concat(hostname).concat("/")))
                             console.log(chalk.blue("-+".repeat(25)));
                             return name;
+                            break;
+                        case 400:
+                            throw Error("Invalid Request : It seems you just sent invalid parameters in request")
                             break;
                         case 403:
                             throw Error("Authentication Failed: Please Login")
@@ -50,7 +61,7 @@ export async function handleUp(hostname: string, type?: String) {
                 .catch(errLogger);
 
 
-            console.log(chalk.blue("Uploading site"));
+            console.log(chalk.blue("Uploading site.."));
         } catch (error) {
             console.log(chalk.red("Domain Taken or Broken : ", error.message));
         }
@@ -82,7 +93,7 @@ async function getDeployableDomain(hostname: string): Promise<string> {
     let validDomain = false;
     while (!validDomain) { //Loop until valid domain found or cli terminated 
         if (!isValidDomain(hostname)) {
-            throw Error("Invalid Domain name"); //Return from the function as user entered un processable domain name
+            throw Error("Invalid Domain name, use domain like test.gstatic.tech"); //Return from the function as user entered un processable domain name
         } else {
             //lets check for avi
             try {
@@ -112,7 +123,7 @@ async function getDeployableDomain(hostname: string): Promise<string> {
                         })
                         .then(recommendings => {
                             console.log(chalk.yellow("Here are some recommeding(s)"))
-                            console.log(chalk.magenta(recommendings.join("\t")))
+                            console.log(chalk.green(recommendings.join("\t")))
 
                             return prompts({
                                 type: "text",

@@ -12,7 +12,7 @@ import { handleDown, handleUp } from "./updown";
 const program = new Command();
 
 
-program.version("0.0.1"); //Setting the version
+program.version("1.1.1"); //Setting the version
 
 
 

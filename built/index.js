@@ -7,7 +7,7 @@ var auth_1 = require("./auth");
 var info_1 = require("./info");
 var updown_1 = require("./updown");
 var program = new commander_1.Command();
-program.version("0.0.1"); //Setting the version
+program.version("1.1.1"); //Setting the version
 program.command("login")
     .description("Authenticates current user")
     .action(auth_1.handleLogin);

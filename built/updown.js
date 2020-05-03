@@ -46,9 +46,11 @@ var fs = require("fs");
 var node_fetch_1 = require("node-fetch");
 var path_1 = require("path");
 var os_1 = require("os");
+var FormData = require("form-data");
+var path_2 = require("path");
 function handleUp(hostname, type) {
     return __awaiter(this, void 0, void 0, function () {
-        var ttype, name_1, buf, fd, error_1;
+        var ttype, name_1, cont, fd, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -61,17 +63,20 @@ function handleUp(hostname, type) {
                 case 2:
                     hostname = _a.sent();
                     name_1 = readyFiles();
-                    buf = fs.readFileSync(name_1, { encoding: "base64" });
-                    fd = JSON.stringify({
-                        hostname: hostname,
-                        type: ttype.toLocaleLowerCase(),
-                        files: buf,
-                        wd: process.cwd()
+                    cont = fs.readFileSync(name_1);
+                    fd = new FormData();
+                    fd.append("files", cont, {
+                        filename: path_2.extname(name_1),
+                        filepath: name_1,
+                        contentType: "application/octet-stream"
                     });
+                    fd.append("hostname", hostname);
+                    fd.append("type", ttype.toLocaleLowerCase());
+                    fd.append("wd", process.cwd());
                     node_fetch_1.default([fixed_1.apiBackend, "up"].join("/"), {
                         method: "post",
                         body: fd,
-                        headers: auth_1.fetchAuthenticatedHeader()
+                        headers: auth_1.fetchMultipartAuthenticatedHeader()
                     })
                         .then(function (res) {
                         switch (res.status) {
@@ -83,6 +88,9 @@ function handleUp(hostname, type) {
                                 console.log(chalk.blue("-+".repeat(25)));
                                 return name_1;
                                 break;
+                            case 400:
+                                throw Error("Invalid Request : It seems you just sent invalid parameters in request");
+                                break;
                             case 403:
                                 throw Error("Authentication Failed: Please Login");
                             default:
@@ -93,7 +101,7 @@ function handleUp(hostname, type) {
                         fs.unlinkSync(tempfilename);
                     })
                         .catch(utils_1.errLogger);
-                    console.log(chalk.blue("Uploading site"));
+                    console.log(chalk.blue("Uploading site.."));
                     return [3 /*break*/, 4];
                 case 3:
                     error_1 = _a.sent();
@@ -134,7 +142,7 @@ function getDeployableDomain(hostname) {
                 case 1:
                     if (!!validDomain) return [3 /*break*/, 9];
                     if (!!isValidDomain(hostname)) return [3 /*break*/, 2];
-                    throw Error("Invalid Domain name"); //Return from the function as user entered un processable domain name
+                    throw Error("Invalid Domain name, use domain like test.gstatic.tech"); //Return from the function as user entered un processable domain name
                 case 2:
                     _a.trys.push([2, 7, , 8]);
                     return [4 /*yield*/, isHostExists(hostname)];
@@ -164,7 +172,7 @@ function getDeployableDomain(hostname) {
                         })
                             .then(function (recommendings) {
                             console.log(chalk.yellow("Here are some recommeding(s)"));
-                            console.log(chalk.magenta(recommendings.join("\t")));
+                            console.log(chalk.green(recommendings.join("\t")));
                             return prompts({
                                 type: "text",
                                 name: "hostname",

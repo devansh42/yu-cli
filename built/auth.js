@@ -57,6 +57,11 @@ exports.fetchUnAuthenticateHeader = function () {
         "content-type": "application/json"
     };
 };
+exports.fetchMultipartAuthenticatedHeader = function () {
+    return {
+        "Authorization": getAccessToken(),
+    };
+};
 var tokenFile = path_1.join(os_1.homedir(), ".access_token");
 function setAccessToken(token) {
     //Sets access token
