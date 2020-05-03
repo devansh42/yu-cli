@@ -241,6 +241,8 @@ function handleDown(hostname) {
             case 200:
                 return;
                 break;
+            case 400:
+                throw Error("It seems you sent invalid request parameters");
             default:
                 throw Error("Couldn't reach to servers");
         }
